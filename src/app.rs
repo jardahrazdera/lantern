@@ -842,6 +842,7 @@ impl App {
         }
     }
     
+    #[allow(dead_code)]
     pub fn open_wifi_enterprise_dialog_direct(&mut self) {
         self.show_wifi_enterprise_dialog = true;
         self.enterprise_active_input = 2; // Start with username field

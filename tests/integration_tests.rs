@@ -121,7 +121,9 @@ mod unit_tests {
         assert!(std::path::Path::new("src/app.rs").exists(), "app.rs should exist");
         assert!(std::path::Path::new("src/network.rs").exists(), "network.rs should exist");
         assert!(std::path::Path::new("src/ui.rs").exists(), "ui.rs should exist");
-        assert!(std::path::Path::new("ROADMAP.md").exists(), "ROADMAP.md should exist");
+        assert!(std::path::Path::new("Cargo.toml").exists(), "Cargo.toml should exist");
+        assert!(std::path::Path::new("LICENSE").exists(), "LICENSE should exist");
+        // Note: ROADMAP.md and CLAUDE.md are excluded from public repository via .gitignore
     }
     
     #[test]

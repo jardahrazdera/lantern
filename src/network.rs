@@ -1,4 +1,5 @@
 // src/network.rs
+#![allow(dead_code)] // Many methods are for future features or CLI mode
 use anyhow::{Result, Context};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
