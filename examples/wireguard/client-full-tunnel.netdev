@@ -1,0 +1,27 @@
+# Example: WireGuard client with full tunnel (all traffic through VPN)
+# Place in: /etc/systemd/network/50-wg0.netdev
+#
+# This configuration routes ALL traffic through the VPN tunnel
+# Replace YOUR_PRIVATE_KEY and SERVER_PUBLIC_KEY with actual values
+
+[NetDev]
+Name=wg0
+Kind=wireguard
+Description=WireGuard VPN tunnel - Full tunnel
+
+[WireGuard]
+# Your client's private key (generate with: wg genkey)
+PrivateKey=YOUR_PRIVATE_KEY_HERE
+
+[WireGuardPeer]
+# VPN server's public key
+PublicKey=SERVER_PUBLIC_KEY_HERE
+# VPN server endpoint (IP:port or domain:port)
+Endpoint=vpn.example.com:51820
+# Route all IPv4 and IPv6 traffic through VPN
+AllowedIPs=0.0.0.0/0, ::/0
+# Keep connection alive (useful for NAT traversal)
+PersistentKeepalive=25
+
+# Enable with:
+# sudo systemctl restart systemd-networkd

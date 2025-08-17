@@ -1,0 +1,43 @@
+# Build artifacts
+/target/
+Cargo.lock
+
+# Development files
+debug.log
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Internal development documentation
+CLAUDE.md
+ROADMAP.md
+
+# Screenshots and development artifacts
+screenshot-*.png
+*.screenshot
+
+# Local configuration
+.env
+.env.local
+
+# Backup files
+*.bak
+*.backup
+
+# Test coverage
+coverage/
+*.profraw
+*.profdata

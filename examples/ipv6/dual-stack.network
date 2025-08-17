@@ -1,0 +1,32 @@
+# Example: Dual-stack IPv4/IPv6 configuration
+# Place in: /etc/systemd/network/10-eth0.network
+#
+# This configuration enables both IPv4 and IPv6
+# IPv4 uses DHCP, IPv6 uses auto-configuration with privacy extensions
+
+[Match]
+Name=eth0
+
+[Network]
+# IPv4 configuration
+DHCP=ipv4
+
+# IPv6 configuration  
+IPv6AcceptRA=yes
+IPv6PrivacyExtensions=yes
+
+# DNS servers (both IPv4 and IPv6)
+DNS=1.1.1.1
+DNS=8.8.8.8
+DNS=2606:4700:4700::1111
+DNS=2001:4860:4860::8888
+
+[DHCP]
+UseDNS=no
+
+[Link]
+RequiredForOnline=yes
+
+# Apply with:
+# sudo systemctl reload systemd-networkd
+# sudo networkctl reconfigure eth0

@@ -1,0 +1,23 @@
+# Example: WiFi interface with DHCP
+# Place in: /etc/systemd/network/25-wlan0.network
+#
+# This configuration enables DHCP for the WiFi interface
+# Works with any wpa_supplicant configuration
+
+[Match]
+Name=wlan0
+
+[Network]
+DHCP=yes
+
+[DHCP]
+UseDNS=yes
+UseRoutes=yes
+UseGateway=yes
+
+[Link]
+RequiredForOnline=yes
+
+# Apply with:
+# sudo systemctl reload systemd-networkd
+# sudo networkctl reconfigure wlan0

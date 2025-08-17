@@ -1,0 +1,29 @@
+# Example: DHCP configuration with custom DNS servers
+# Place in: /etc/systemd/network/10-eth0.network
+#
+# This configuration uses DHCP for IP/gateway but overrides DNS
+# Useful when you want automatic IP but prefer specific DNS servers
+
+[Match]
+Name=eth0
+
+[Network]
+DHCP=yes
+DNS=1.1.1.1
+DNS=8.8.8.8
+
+[DHCP]
+# Don't use DHCP-provided DNS servers
+UseDNS=no
+# Use DHCP-provided routes and gateway
+UseRoutes=yes
+UseGateway=yes
+# Accept DHCP-provided timezone
+UseTimezone=yes
+
+[Link]
+RequiredForOnline=yes
+
+# Apply with:
+# sudo systemctl reload systemd-networkd
+# sudo networkctl reconfigure eth0

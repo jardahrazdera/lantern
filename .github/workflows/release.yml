@@ -1,0 +1,199 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build for ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary-name: lantern
+            archive-name: lantern-linux-x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            binary-name: lantern
+            archive-name: lantern-linux-x86_64-musl
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Install musl tools (for musl target)
+      if: matrix.target == 'x86_64-unknown-linux-musl'
+      run: sudo apt-get install musl-tools
+
+    - name: Cache cargo registry and target
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ matrix.target }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-${{ matrix.target }}-
+          ${{ runner.os }}-cargo-
+
+    - name: Run tests
+      run: cargo test --target ${{ matrix.target }}
+
+    - name: Build release binary
+      run: cargo build --release --target ${{ matrix.target }}
+
+    - name: Strip binary (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: strip target/${{ matrix.target }}/release/${{ matrix.binary-name }}
+
+    - name: Create archive
+      run: |
+        mkdir ${{ matrix.archive-name }}
+        cp target/${{ matrix.target }}/release/${{ matrix.binary-name }} ${{ matrix.archive-name }}/
+        cp README.md INSTALL.md USAGE.md LICENSE ${{ matrix.archive-name }}/
+        tar -czf ${{ matrix.archive-name }}.tar.gz ${{ matrix.archive-name }}
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.archive-name }}
+        path: ${{ matrix.archive-name }}.tar.gz
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Lantern v${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## Lantern v${{ steps.get_version.outputs.VERSION }}
+          
+          🚀 **Modern TUI for Linux Network Interface Management**
+          
+          ### ✨ Features
+          - 🔌 **Network Interface Management** - DHCP and static IP configuration
+          - 📡 **Advanced WiFi Support** - WPA/WPA2/WPA3, Enterprise, and Hotspot creation
+          - 🔒 **VPN Integration** - WireGuard configuration and management
+          - 📊 **Real-time Monitoring** - Interface statistics and connection quality
+          - ⚙️ **systemd-networkd Integration** - Native Linux network management
+          - 🎯 **TUI & CLI Modes** - Interactive terminal UI or command-line interface
+          
+          ### 📦 Installation
+          
+          #### Quick Install (Linux x86_64)
+          ```bash
+          wget https://github.com/jardahrazdera/lantern/releases/download/v${{ steps.get_version.outputs.VERSION }}/lantern-linux-x86_64.tar.gz
+          tar -xzf lantern-linux-x86_64.tar.gz
+          sudo cp lantern-linux-x86_64/lantern /usr/local/bin/
+          ```
+          
+          #### Usage
+          ```bash
+          # Start TUI interface (requires root)
+          sudo lantern
+          
+          # CLI mode for headless systems
+          sudo lantern --cli
+          
+          # Show help
+          lantern --help
+          ```
+          
+          ### 📋 System Requirements
+          - Linux with systemd-networkd
+          - Root privileges for network configuration
+          - Optional: hostapd, dnsmasq (for hotspot), wireguard-tools (for VPN)
+          
+          ### 📚 Documentation
+          - [Installation Guide](https://github.com/jardahrazdera/lantern/blob/v${{ steps.get_version.outputs.VERSION }}/INSTALL.md)
+          - [Usage Guide](https://github.com/jardahrazdera/lantern/blob/v${{ steps.get_version.outputs.VERSION }}/USAGE.md)
+          - [Project Roadmap](https://github.com/jardahrazdera/lantern/blob/v${{ steps.get_version.outputs.VERSION }}/ROADMAP.md)
+          
+          ### 🔧 What's New
+          - Complete WiFi management suite (WPA/WPA2/WPA3/Enterprise)
+          - WiFi hotspot creation with UI
+          - WiFi diagnostics and real-time monitoring
+          - Enhanced CLI arguments (--help, --version, --cli)
+          - Comprehensive test suite
+          - Professional documentation
+          
+          ---
+          
+          **Full Changelog:** https://github.com/jardahrazdera/lantern/compare/v0.1.0...v${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      run: |
+        for archive in lantern-linux-*/*.tar.gz; do
+          asset_name=$(basename "$archive")
+          gh release upload v${{ steps.get_version.outputs.VERSION }} "$archive" --clobber
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache cargo
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+
+    - name: Run tests
+      run: cargo test --verbose
+
+    - name: Check code formatting
+      run: cargo fmt --all -- --check
+
+    - name: Run clippy
+      run: cargo clippy -- -D warnings
+
+    - name: Security audit
+      run: |
+        cargo install cargo-audit
+        cargo audit

@@ -1,0 +1,37 @@
+[package]
+name = "lantern"
+version = "0.1.0"
+edition = "2021"
+authors = ["Jarek <jarek@jaroslav.tech>"]
+description = "Modern TUI for Linux network interface management with WiFi, VPN, and systemd-networkd integration"
+license = "GPL-3.0"
+repository = "https://github.com/jardahrazdera/lantern"
+homepage = "https://github.com/jardahrazdera/lantern"
+documentation = "https://github.com/jardahrazdera/lantern"
+readme = "README.md"
+keywords = ["network", "tui", "wifi", "systemd", "linux"]
+categories = ["command-line-utilities", "network-programming"]
+exclude = ["target/", ".git/", "*.log", "examples/"]
+
+[dependencies]
+ratatui = "0.28"
+crossterm = "0.28"
+tokio = { version = "1.42", features = ["full"] }
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+nix = { version = "0.29", features = ["net", "user"] }
+ipnetwork = "0.20"
+libc = "0.2"
+once_cell = "1.20"
+chrono = "0.4"
+byte-unit = "5.1"
+tui-input = "0.10"
+dirs = "5.0"
+clap = { version = "4.5", features = ["derive"] }
+
+[[bin]]
+name = "lantern"
+path = "src/main.rs"
