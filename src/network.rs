@@ -1,5 +1,10 @@
 // src/network.rs
 #![allow(dead_code)] // Many methods are for future features or CLI mode
+#![allow(clippy::needless_borrows_for_generic_args)] // Command args are clearer with explicit borrows
+#![allow(clippy::too_many_arguments)] // Network functions need many parameters
+#![allow(clippy::upper_case_acronyms)] // Network protocol acronyms are standard
+#![allow(clippy::redundant_pattern_matching)] // Pattern matching is more readable than is_ok/is_err
+#![allow(clippy::manual_clamp)] // Explicit max/min is clearer than clamp
 use crate::iwd::IwdManager;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};

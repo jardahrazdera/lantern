@@ -1,4 +1,5 @@
 // src/utils.rs
+#![allow(clippy::iter_nth_zero)] // .nth(0) is clearer in this context
 use byte_unit::Byte;
 
 #[allow(dead_code)]

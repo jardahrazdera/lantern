@@ -1,4 +1,7 @@
 // src/ui.rs
+#![allow(clippy::map_clone)] // .map(|x| x.clone()) is clearer than .cloned() in some contexts
+#![allow(clippy::option_as_ref_deref)] // Code clarity over micro-optimizations
+#![allow(clippy::useless_format)] // Format strings may contain dynamic content in future
 use crate::app::App;
 use crate::icons;
 use byte_unit::Byte;
@@ -104,7 +107,7 @@ fn draw_interface_list(f: &mut Frame, app: &App, area: Rect) {
             let ip = iface
                 .ipv4_addresses
                 .first()
-                .map(|ip| ip.clone())
+                .cloned()
                 .unwrap_or_else(|| "No IP".to_string());
 
             // Build WiFi info if available
@@ -217,13 +220,7 @@ fn draw_interface_details(f: &mut Frame, app: &App, area: Rect) {
         lines.push(Line::from(""));
         lines.push(Line::from(vec![
             Span::styled("Gateway: ", Style::default().add_modifier(Modifier::BOLD)),
-            Span::raw(
-                interface
-                    .gateway
-                    .as_ref()
-                    .map(|s| s.as_str())
-                    .unwrap_or("None"),
-            ),
+            Span::raw(interface.gateway.as_deref().unwrap_or("None")),
         ]));
 
         lines.push(Line::from(""));
@@ -368,7 +365,7 @@ fn draw_edit_dialog(f: &mut Frame, app: &App) {
             icons::CONNECTED
         )
     } else {
-        format!("DHCP: [ ] Disabled (press Space to toggle)")
+        "DHCP: [ ] Disabled (press Space to toggle)".to_string()
     };
     let dhcp = Paragraph::new(dhcp_text);
     f.render_widget(dhcp, chunks[0]);

@@ -1,5 +1,7 @@
 // src/iwd.rs - iwd command-line integration for modern WiFi management
 #![allow(dead_code)] // Many methods are for future features or CLI mode
+#![allow(clippy::needless_borrows_for_generic_args)] // Command args are clearer with explicit borrows
+#![allow(clippy::collapsible_if)] // Code clarity over micro-optimizations
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::process::Command;

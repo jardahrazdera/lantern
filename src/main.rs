@@ -1,4 +1,7 @@
 // src/main.rs
+#![allow(clippy::enum_variant_names)] // UpdateMessage variants are descriptive
+#![allow(clippy::needless_borrows_for_generic_args)] // Command args are clearer with explicit borrows
+
 mod app;
 mod config;
 mod icons;

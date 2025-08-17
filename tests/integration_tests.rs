@@ -101,7 +101,6 @@ fn test_cli_mode_without_root() {
 
 #[cfg(test)]
 mod unit_tests {
-    use super::*;
 
     #[test]
     fn test_cargo_metadata() {

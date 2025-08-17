@@ -1,5 +1,7 @@
 // src/app.rs
 #![allow(dead_code)] // Many methods are for future features or CLI mode
+#![allow(clippy::useless_format)] // Format strings may contain dynamic content in future
+#![allow(clippy::unnecessary_map_or)] // Code clarity over micro-optimizations
 use crate::config::{Config, WifiProfile};
 use crate::network::{
     DetailedWifiInfo, EnterpriseAuthMethod, EnterpriseCredentials, Interface, NetworkManager,

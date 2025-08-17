@@ -1,5 +1,6 @@
 // src/icons.rs - Nerd Font icons for consistent UI
 // This module provides Nerd Font icons for better terminal compatibility
+#![allow(dead_code)] // Icons are for future UI enhancements
 
 // Network and connectivity icons
 pub const WIFI: &str = ""; // nf-fa-wifi

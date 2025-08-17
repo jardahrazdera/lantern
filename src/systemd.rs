@@ -1,5 +1,6 @@
 // src/systemd.rs
 #![allow(dead_code)] // Many methods are for future features or CLI mode
+#![allow(clippy::needless_borrows_for_generic_args)] // Command args are clearer with explicit borrows
 use crate::network::{Ipv6Config, WifiCredentials, WifiSecurity, WireGuardConfig};
 use anyhow::Result;
 use std::fs;
