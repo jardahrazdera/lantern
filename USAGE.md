@@ -22,15 +22,15 @@ lantern --version
 ### Main Interface Layout
 ```
 ┌─ Interfaces ─────────────────┬─ Details ─────────────────────┐
-│ > eth0     [UP]   192.168.1.5│ Interface: eth0              │
-│   wlan0    [UP]   WiFi: Home │ State: UP                    │
-│   docker0  [DOWN] No IP      │ IPv4: 192.168.1.5/24         │
-│                              │ Gateway: 192.168.1.1         │
-│                              │ DNS: 192.168.1.1             │
-│                              │                              │
-│                              │ Statistics:                  │
-│                              │ RX: 1.2 GB  TX: 856 MB      │
-└──────────────────────────────┴──────────────────────────────┘
+│ > eth0     [UP]   192.168.1.5│ Interface: eth0               │
+│   wlan0    [UP]   WiFi: Home │ State: UP                     │
+│   docker0  [DOWN] No IP      │ IPv4: 192.168.1.5/24          │
+│                              │ Gateway: 192.168.1.1          │
+│                              │ DNS: 192.168.1.1              │
+│                              │                               │
+│                              │ Statistics:                   │
+│                              │ RX: 1.2 GB  TX: 856 MB        │
+└──────────────────────────────┴───────────────────────────────┘
 Keys: ↑↓/jk: Navigate  Enter: Details  e: Edit  w: WiFi  q: Quit
 ```
 
@@ -94,14 +94,14 @@ Keys: ↑↓/jk: Navigate  Enter: Details  e: Edit  w: WiFi  q: Quit
 
 #### Edit Interface (Press `e`)
 ```
-┌─ Edit Interface: eth0 ─────────────────────────┐
+┌─ Edit Interface: eth0 ────────────────────────┐
 │                                               │
 │ ○ DHCP Configuration                          │
 │ ● Static Configuration                        │
 │                                               │
-│ IP Address: [192.168.1.100/24        ]       │
-│ Gateway:    [192.168.1.1             ]       │
-│ DNS Server: [8.8.8.8                 ]       │
+│ IP Address: [192.168.1.100/24        ]        │
+│ Gateway:    [192.168.1.1             ]        │
+│ DNS Server: [8.8.8.8                 ]        │
 │                                               │
 │ [Save]                    [Cancel]            │
 └───────────────────────────────────────────────┘
@@ -248,7 +248,6 @@ sudo lantern --cli
 - [Installation Guide](INSTALL.md)
 - [Examples Directory](examples/)
 - [GitHub Issues](https://github.com/jardahrazdera/lantern/issues)
-- [Project Roadmap](ROADMAP.md)
 
 ### Log Files
 - systemd-networkd: `sudo journalctl -u systemd-networkd`
