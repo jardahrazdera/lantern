@@ -91,22 +91,22 @@ ssh -t user@host sudo lantern
 ### Interface Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Lantern - Network Interface Manager       │
-├─────────────────────────┬───────────────────────────────────┤
-│ Interfaces [↑/↓ to nav] │ Statistics [Enter for details]    │
-│                         │                                   │
-│ eth0      UP    192.168.│ Network Statistics                │
-│ wlan0     DOWN  No IP   │                                   │
-│ lo        UP    127.0.0.│ ↓ RX: 45.2 MB                    │
-│                         │   Packets: 1,234                 │
-│                         │   Errors: 0                      │
-│                         │                                   │
-│                         │ ↑ TX: 12.8 MB                    │
-│                         │   Packets: 892                   │
-│                         │   Errors: 0                      │
-└─────────────────────────┴───────────────────────────────────┘
-│ ^Q: Quit | ^R: Refresh | e: Edit | u: Up/Down | Enter: Details │
+┌─────────────────────────────────────────────────────────────────┐
+│                    Lantern - Network Interface Manager          │
+├─────────────────────────┬───────────────────────────────────────┤
+│ Interfaces [↑/↓ to nav] │ Statistics [Enter for details]        │
+│                         │                                       │
+│ eth0      UP    192.168.│ Network Statistics                    │
+│ wlan0     DOWN  No IP   │                                       │
+│ lo        UP    127.0.0.│ ↓ RX: 45.2 MB                         │
+│                         │   Packets: 1,234                      │
+│                         │   Errors: 0                           │
+│                         │                                       │
+│                         │ ↑ TX: 12.8 MB                         │
+│                         │   Packets: 892                        │
+│                         │   Errors: 0                           │
+└─────────────────────────┴───────────────────────────────────────┘
+│ ^Q: Quit | ^R: Refresh | e: Edit | u: Up/Down | Enter: Details  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -128,24 +128,24 @@ When editing an interface (`e` key):
 ```
 ┌──────────────── Edit eth0 ────────────────┐
 │                                           │
-│ DHCP: [✓] Enabled (press 'd' to toggle)  │
+│ DHCP: [✓] Enabled (press 'd' to toggle)   │
 │                                           │
 │ ┌─────────────────────────────────────┐   │
 │ │ IP Address                          │   │
-│ │ 192.168.1.100/24                   │   │
+│ │ 192.168.1.100/24                    │   │
 │ └─────────────────────────────────────┘   │
 │                                           │
 │ ┌─────────────────────────────────────┐   │
 │ │ Gateway                             │   │
-│ │ 192.168.1.1                        │   │
+│ │ 192.168.1.1                         │   │
 │ └─────────────────────────────────────┘   │
 │                                           │
 │ ┌─────────────────────────────────────┐   │
 │ │ DNS Servers (comma separated)       │   │
-│ │ 8.8.8.8, 1.1.1.1                   │   │
+│ │ 8.8.8.8, 1.1.1.1                    │   │
 │ └─────────────────────────────────────┘   │
 │                                           │
-│     Tab: Next field | s: Save | Esc: Cancel     │
+│ Tab: Next field | s: Save | Esc: Cancel   │
 └───────────────────────────────────────────┘
 ```
 
