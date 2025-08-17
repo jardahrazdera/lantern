@@ -1,11 +1,15 @@
 // src/app.rs
-use crate::network::{Interface, NetworkManager, WifiNetwork, WifiCredentials, EnterpriseCredentials, EnterpriseAuthMethod, Phase2AuthMethod, WifiSecurity, DetailedWifiInfo};
-use crate::systemd::SystemdNetworkConfig;
+#![allow(dead_code)] // Many methods are for future features or CLI mode
 use crate::config::{Config, WifiProfile};
+use crate::network::{
+    DetailedWifiInfo, EnterpriseAuthMethod, EnterpriseCredentials, Interface, NetworkManager,
+    Phase2AuthMethod, WifiCredentials, WifiNetwork, WifiSecurity,
+};
+use crate::systemd::SystemdNetworkConfig;
 use anyhow::Result;
 use std::time::{Duration, Instant, SystemTime};
-use tui_input::Input;
 use tui_input::backend::crossterm::EventHandler;
+use tui_input::Input;
 
 #[derive(Clone)]
 pub struct App {
@@ -22,7 +26,7 @@ pub struct App {
     pub last_auto_connect_check: Instant,
     pub status_message: Option<(String, Instant)>,
     pub needs_redraw: bool,
-    
+
     // Edit dialog state
     pub edit_interface: Option<Interface>,
     pub use_dhcp: bool,
@@ -39,7 +43,7 @@ pub struct App {
     pub selected_wifi_index: usize,
     pub wifi_scanning: bool,
     pub last_wifi_scan: Instant,
-    
+
     // WiFi connection dialog state
     pub show_wifi_connect_dialog: bool,
     pub selected_wifi_network: Option<WifiNetwork>,
@@ -50,7 +54,7 @@ pub struct App {
     pub wifi_dns_input: Input,
     pub wifi_active_input: usize,
     pub wifi_hidden_ssid: bool,
-    
+
     // Enterprise WiFi dialog state
     pub show_wifi_enterprise_dialog: bool,
     pub enterprise_auth_method: EnterpriseAuthMethod,
@@ -63,14 +67,14 @@ pub struct App {
     pub enterprise_private_key_input: Input,
     pub enterprise_key_password_input: Input,
     pub enterprise_active_input: usize,
-    
+
     // Hotspot dialog state
     pub show_hotspot_dialog: bool,
     pub hotspot_ssid_input: Input,
     pub hotspot_password_input: Input,
     pub hotspot_channel: u32,
     pub hotspot_active_input: usize,
-    
+
     // WiFi diagnostics dialog state
     pub show_wifi_diagnostics_dialog: bool,
     pub wifi_diagnostics_data: Option<DetailedWifiInfo>,
@@ -84,7 +88,7 @@ impl App {
             profiles: Vec::new(),
             wifi_profiles: Vec::new(),
         });
-        
+
         Ok(Self {
             interfaces,
             selected_index: 0,
@@ -105,7 +109,7 @@ impl App {
             gateway_input: Input::default(),
             dns_input: Input::default(),
             active_input: 0,
-            
+
             // WiFi initialization
             show_wifi_dialog: false,
             show_wifi_loading_dialog: false,
@@ -114,7 +118,7 @@ impl App {
             selected_wifi_index: 0,
             wifi_scanning: false,
             last_wifi_scan: Instant::now() - Duration::from_secs(60), // Force initial scan
-            
+
             // WiFi connection dialog initialization
             show_wifi_connect_dialog: false,
             selected_wifi_network: None,
@@ -125,7 +129,7 @@ impl App {
             wifi_dns_input: Input::default(),
             wifi_active_input: 0,
             wifi_hidden_ssid: false,
-            
+
             // Enterprise WiFi initialization
             show_wifi_enterprise_dialog: false,
             enterprise_auth_method: EnterpriseAuthMethod::PEAP,
@@ -138,14 +142,14 @@ impl App {
             enterprise_private_key_input: Input::default(),
             enterprise_key_password_input: Input::default(),
             enterprise_active_input: 0,
-            
+
             // Hotspot initialization
             show_hotspot_dialog: false,
             hotspot_ssid_input: Input::default().with_value("Lantern-Hotspot".to_string()),
             hotspot_password_input: Input::default().with_value("password123".to_string()),
             hotspot_channel: 6,
             hotspot_active_input: 0,
-            
+
             // WiFi diagnostics initialization
             show_wifi_diagnostics_dialog: false,
             wifi_diagnostics_data: None,
@@ -191,7 +195,7 @@ impl App {
         if let Some(interface) = self.interfaces.get(self.selected_index) {
             self.edit_interface = Some(interface.clone());
             self.show_edit_dialog = true;
-            
+
             // Pre-fill current values
             if let Some(ip) = interface.ipv4_addresses.first() {
                 self.ip_input = Input::default().with_value(ip.clone());
@@ -226,28 +230,29 @@ impl App {
 
     pub fn input_char(&mut self, c: char) {
         match self.active_input {
-            0 => { 
+            0 => {
                 self.ip_input.handle_event(&crossterm::event::Event::Key(
                     crossterm::event::KeyEvent::new(
                         crossterm::event::KeyCode::Char(c),
                         crossterm::event::KeyModifiers::empty(),
-                    )
+                    ),
                 ));
             }
             1 => {
-                self.gateway_input.handle_event(&crossterm::event::Event::Key(
-                    crossterm::event::KeyEvent::new(
-                        crossterm::event::KeyCode::Char(c),
-                        crossterm::event::KeyModifiers::empty(),
-                    )
-                ));
+                self.gateway_input
+                    .handle_event(&crossterm::event::Event::Key(
+                        crossterm::event::KeyEvent::new(
+                            crossterm::event::KeyCode::Char(c),
+                            crossterm::event::KeyModifiers::empty(),
+                        ),
+                    ));
             }
             2 => {
                 self.dns_input.handle_event(&crossterm::event::Event::Key(
                     crossterm::event::KeyEvent::new(
                         crossterm::event::KeyCode::Char(c),
                         crossterm::event::KeyModifiers::empty(),
-                    )
+                    ),
                 ));
             }
             _ => {}
@@ -255,36 +260,56 @@ impl App {
     }
 
     pub fn delete_char(&mut self) {
-        let backspace_event = crossterm::event::Event::Key(
-            crossterm::event::KeyEvent::new(
-                crossterm::event::KeyCode::Backspace,
-                crossterm::event::KeyModifiers::empty(),
-            )
-        );
-        
+        let backspace_event = crossterm::event::Event::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Backspace,
+            crossterm::event::KeyModifiers::empty(),
+        ));
+
         match self.active_input {
-            0 => { self.ip_input.handle_event(&backspace_event); }
-            1 => { self.gateway_input.handle_event(&backspace_event); }
-            2 => { self.dns_input.handle_event(&backspace_event); }
+            0 => {
+                self.ip_input.handle_event(&backspace_event);
+            }
+            1 => {
+                self.gateway_input.handle_event(&backspace_event);
+            }
+            2 => {
+                self.dns_input.handle_event(&backspace_event);
+            }
             _ => {}
         }
     }
 
     pub async fn save_configuration(&mut self) -> Result<()> {
         if let Some(interface) = &self.edit_interface {
-            let dns_servers: Vec<String> = self.dns_input.value()
+            let dns_servers: Vec<String> = self
+                .dns_input
+                .value()
                 .split(',')
                 .map(|s| s.trim().to_string())
                 .filter(|s| !s.is_empty())
                 .collect();
 
-            self.systemd_config.create_config(
-                &interface.name,
-                self.use_dhcp,
-                if self.use_dhcp { None } else { Some(self.ip_input.value().to_string()) },
-                if self.use_dhcp { None } else { Some(self.gateway_input.value().to_string()) },
-                if self.use_dhcp { None } else { Some(dns_servers) },
-            ).await?;
+            self.systemd_config
+                .create_config(
+                    &interface.name,
+                    self.use_dhcp,
+                    if self.use_dhcp {
+                        None
+                    } else {
+                        Some(self.ip_input.value().to_string())
+                    },
+                    if self.use_dhcp {
+                        None
+                    } else {
+                        Some(self.gateway_input.value().to_string())
+                    },
+                    if self.use_dhcp {
+                        None
+                    } else {
+                        Some(dns_servers)
+                    },
+                )
+                .await?;
 
             self.status_message = Some(("Configuration saved".to_string(), Instant::now()));
             self.close_dialog();
@@ -296,12 +321,18 @@ impl App {
     pub async fn toggle_interface_state(&mut self) -> Result<()> {
         if let Some(interface) = self.interfaces.get(self.selected_index) {
             let interface_name = interface.name.clone();
-            let new_state = if interface.state == "UP" { "down" } else { "up" };
-            self.network_manager.set_interface_state(&interface_name, new_state).await?;
+            let new_state = if interface.state == "UP" {
+                "down"
+            } else {
+                "up"
+            };
+            self.network_manager
+                .set_interface_state(&interface_name, new_state)
+                .await?;
             self.refresh_interfaces().await?;
             self.status_message = Some((
                 format!("Interface {} set to {}", interface_name, new_state),
-                Instant::now()
+                Instant::now(),
             ));
         }
         Ok(())
@@ -323,9 +354,12 @@ impl App {
         self.last_auto_connect_check.elapsed() > Duration::from_secs(30)
     }
 
+    #[allow(dead_code)]
     pub async fn update_stats(&mut self) -> Result<()> {
         // Only update statistics, not full interface data (performance optimization)
-        self.network_manager.update_interface_stats(&mut self.interfaces).await?;
+        self.network_manager
+            .update_interface_stats(&mut self.interfaces)
+            .await?;
         self.last_refresh = Instant::now();
         Ok(())
     }
@@ -364,9 +398,9 @@ impl App {
     pub async fn check_auto_connect(&mut self) -> Result<()> {
         // Only auto-connect if no WiFi interface is currently connected
         let has_connected_wifi = self.interfaces.iter().any(|iface| {
-            iface.wifi_info.is_some() && 
-            iface.state == "UP" && 
-            iface.wifi_info.as_ref().unwrap().current_network.is_some()
+            iface.wifi_info.is_some()
+                && iface.state == "UP"
+                && iface.wifi_info.as_ref().unwrap().current_network.is_some()
         });
 
         if has_connected_wifi {
@@ -374,13 +408,17 @@ impl App {
         }
 
         // Find the first available WiFi interface
-        let wifi_interface = self.interfaces.iter()
+        let wifi_interface = self
+            .interfaces
+            .iter()
             .find(|iface| iface.wifi_info.is_some())
             .map(|iface| iface.name.clone());
 
         if let Some(interface_name) = wifi_interface {
             // Get auto-connect profiles sorted by priority (clone to avoid borrowing issues)
-            let auto_connect_profiles: Vec<_> = self.config.get_wifi_profiles_by_priority()
+            let auto_connect_profiles: Vec<_> = self
+                .config
+                .get_wifi_profiles_by_priority()
                 .into_iter()
                 .filter(|profile| profile.auto_connect && profile.interface == interface_name)
                 .cloned()
@@ -388,20 +426,28 @@ impl App {
 
             if !auto_connect_profiles.is_empty() {
                 // Scan for available networks
-                if let Ok(available_networks) = self.network_manager.scan_wifi_networks(&interface_name).await {
+                if let Ok(available_networks) = self
+                    .network_manager
+                    .scan_wifi_networks(&interface_name)
+                    .await
+                {
                     // Try to connect to the highest priority available network
                     for profile in auto_connect_profiles {
-                        if let Some(_network) = available_networks.iter()
-                            .find(|net| net.ssid == profile.ssid) {
-                            
+                        if let Some(_network) = available_networks
+                            .iter()
+                            .find(|net| net.ssid == profile.ssid)
+                        {
                             // Attempt auto-connect
-                            if let Err(e) = self.auto_connect_to_profile(&profile, &interface_name).await {
+                            if let Err(e) = self
+                                .auto_connect_to_profile(&profile, &interface_name)
+                                .await
+                            {
                                 eprintln!("Auto-connect failed for {}: {}", profile.ssid, e);
                                 continue; // Try next profile
                             } else {
                                 self.status_message = Some((
                                     format!("Auto-connected to {}", profile.ssid),
-                                    Instant::now()
+                                    Instant::now(),
                                 ));
                                 break; // Successfully connected
                             }
@@ -414,7 +460,11 @@ impl App {
         Ok(())
     }
 
-    async fn auto_connect_to_profile(&mut self, profile: &crate::config::WifiProfile, interface_name: &str) -> Result<()> {
+    async fn auto_connect_to_profile(
+        &mut self,
+        profile: &crate::config::WifiProfile,
+        interface_name: &str,
+    ) -> Result<()> {
         let credentials = crate::network::WifiCredentials {
             ssid: profile.ssid.clone(),
             password: profile.password.clone(),
@@ -423,17 +473,20 @@ impl App {
             enterprise: profile.enterprise.clone(),
         };
 
-        self.network_manager.connect_to_wifi(
-            interface_name,
-            &credentials,
-            profile.dhcp,
-            profile.ip.clone(),
-            profile.gateway.clone(),
-            profile.dns.clone(),
-        ).await?;
+        self.network_manager
+            .connect_to_wifi(
+                interface_name,
+                &credentials,
+                profile.dhcp,
+                profile.ip.clone(),
+                profile.gateway.clone(),
+                profile.dns.clone(),
+            )
+            .await?;
 
         // Update connection time
-        self.config.update_wifi_connection(&profile.ssid, interface_name);
+        self.config
+            .update_wifi_connection(&profile.ssid, interface_name);
         let _ = self.config.save(); // Save updated connection time
 
         Ok(())
@@ -455,28 +508,33 @@ impl App {
     pub fn toggle_wifi_auto_connect(&mut self) -> Result<()> {
         let interface_name = self.get_selected_interface().map(|i| i.name.clone());
         let network_ssid = self.get_selected_wifi_network().map(|n| n.ssid.clone());
-        
+
         if let (Some(interface_name), Some(network_ssid)) = (interface_name, network_ssid) {
-            if let Some(profile) = self.config.wifi_profiles.iter_mut()
-                .find(|p| p.ssid == network_ssid && p.interface == interface_name) {
-                
+            if let Some(profile) = self
+                .config
+                .wifi_profiles
+                .iter_mut()
+                .find(|p| p.ssid == network_ssid && p.interface == interface_name)
+            {
                 profile.auto_connect = !profile.auto_connect;
                 let enabled = profile.auto_connect;
-                
+
                 if let Err(e) = self.config.save() {
                     eprintln!("Warning: Failed to save auto-connect setting: {}", e);
                 }
-                
+
                 self.status_message = Some((
-                    format!("Auto-connect {} for {}", 
-                        if enabled { "enabled" } else { "disabled" }, 
-                        network_ssid),
-                    Instant::now()
+                    format!(
+                        "Auto-connect {} for {}",
+                        if enabled { "enabled" } else { "disabled" },
+                        network_ssid
+                    ),
+                    Instant::now(),
                 ));
             } else {
                 self.status_message = Some((
                     "Network not saved - connect first to enable auto-connect".to_string(),
-                    Instant::now()
+                    Instant::now(),
                 ));
             }
         }
@@ -488,8 +546,11 @@ impl App {
     }
 
     pub fn needs_redraw(&self) -> bool {
-        self.needs_redraw || 
-        self.status_message.as_ref().map_or(false, |(_, time)| time.elapsed().as_secs() < 3)
+        self.needs_redraw
+            || self
+                .status_message
+                .as_ref()
+                .map_or(false, |(_, time)| time.elapsed().as_secs() < 3)
     }
 
     pub fn mark_redrawn(&mut self) {
@@ -508,9 +569,9 @@ impl App {
         if !self.wifi_scan_pending {
             return Ok(());
         }
-        
+
         self.wifi_scan_pending = false;
-        
+
         // Try to find and use a WiFi interface automatically
         let wifi_interface = if let Some(interface) = self.get_selected_interface() {
             // First try the selected interface if it has WiFi capability
@@ -524,9 +585,12 @@ impl App {
             // No interface selected, find any WiFi interface
             self.find_wifi_interface().await
         };
-        
+
         if let Some(wifi_interface_name) = wifi_interface {
-            match self.scan_wifi_networks_for_interface(&wifi_interface_name).await {
+            match self
+                .scan_wifi_networks_for_interface(&wifi_interface_name)
+                .await
+            {
                 Ok(_) => {
                     // Hide loading dialog and show results
                     self.show_wifi_loading_dialog = false;
@@ -557,7 +621,8 @@ impl App {
         if let Some(interface) = self.get_selected_interface() {
             if interface.wifi_info.is_some() {
                 let interface_name = interface.name.clone();
-                self.scan_wifi_networks_for_interface(&interface_name).await?;
+                self.scan_wifi_networks_for_interface(&interface_name)
+                    .await?;
             }
         }
         Ok(())
@@ -566,13 +631,19 @@ impl App {
     // Helper method to scan WiFi networks for a specific interface
     pub async fn scan_wifi_networks_for_interface(&mut self, interface_name: &str) -> Result<()> {
         self.wifi_scanning = true;
-        self.wifi_networks = self.network_manager.scan_wifi_networks(interface_name).await?;
-        
+        self.wifi_networks = self
+            .network_manager
+            .scan_wifi_networks(interface_name)
+            .await?;
+
         // Populate in_history field for performance optimization
         for network in &mut self.wifi_networks {
-            network.in_history = self.config.get_wifi_profile(&network.ssid, interface_name).is_some();
+            network.in_history = self
+                .config
+                .get_wifi_profile(&network.ssid, interface_name)
+                .is_some();
         }
-        
+
         self.wifi_scanning = false;
         self.last_wifi_scan = Instant::now();
         self.selected_wifi_index = 0;
@@ -582,11 +653,11 @@ impl App {
     // Helper method to detect if an interface is likely a WiFi interface based on naming patterns
     fn is_likely_wifi_interface(&self, interface_name: &str) -> bool {
         // Common WiFi interface naming patterns
-        interface_name.starts_with("wlan") ||
-        interface_name.starts_with("wlp") ||
-        interface_name.starts_with("wifi") ||
-        interface_name.starts_with("wlx") ||
-        interface_name.starts_with("wlo")
+        interface_name.starts_with("wlan")
+            || interface_name.starts_with("wlp")
+            || interface_name.starts_with("wifi")
+            || interface_name.starts_with("wlx")
+            || interface_name.starts_with("wlo")
     }
 
     // Helper method to find the first available WiFi interface
@@ -597,14 +668,14 @@ impl App {
                 return Some(interface.name.clone());
             }
         }
-        
+
         // Then check by naming patterns (this is fast and usually sufficient)
         for interface in &self.interfaces {
             if self.is_likely_wifi_interface(&interface.name) {
                 return Some(interface.name.clone());
             }
         }
-        
+
         // Skip the slow command execution check - naming patterns are enough
         None
     }
@@ -633,29 +704,26 @@ impl App {
         if let Some(network) = self.get_selected_wifi_network().cloned() {
             self.selected_wifi_network = Some(network.clone());
             self.show_wifi_connect_dialog = true;
-            
+
             // Check if we have a saved profile for this network
             let saved_profile = if let Some(interface) = self.get_selected_interface() {
-                self.config.get_wifi_profile(&network.ssid, &interface.name).cloned()
+                self.config
+                    .get_wifi_profile(&network.ssid, &interface.name)
+                    .cloned()
             } else {
                 None
             };
-            
+
             if let Some(profile) = saved_profile {
                 // Pre-fill with saved credentials and settings
-                self.wifi_password_input = Input::default().with_value(
-                    profile.password.unwrap_or_default()
-                );
+                self.wifi_password_input =
+                    Input::default().with_value(profile.password.unwrap_or_default());
                 self.wifi_use_dhcp = profile.dhcp;
-                self.wifi_ip_input = Input::default().with_value(
-                    profile.ip.unwrap_or_default()
-                );
-                self.wifi_gateway_input = Input::default().with_value(
-                    profile.gateway.unwrap_or_default()
-                );
-                self.wifi_dns_input = Input::default().with_value(
-                    profile.dns.map(|dns| dns.join(", ")).unwrap_or_default()
-                );
+                self.wifi_ip_input = Input::default().with_value(profile.ip.unwrap_or_default());
+                self.wifi_gateway_input =
+                    Input::default().with_value(profile.gateway.unwrap_or_default());
+                self.wifi_dns_input = Input::default()
+                    .with_value(profile.dns.map(|dns| dns.join(", ")).unwrap_or_default());
             } else {
                 // Use defaults for new networks
                 self.wifi_password_input = Input::default();
@@ -664,7 +732,7 @@ impl App {
                 self.wifi_gateway_input = Input::default();
                 self.wifi_dns_input = Input::default();
             }
-            
+
             self.wifi_active_input = 0;
         }
     }
@@ -693,61 +761,77 @@ impl App {
 
     pub fn wifi_connect_input_char(&mut self, c: char) {
         match self.wifi_active_input {
-            0 => { // Password
-                self.wifi_password_input.handle_event(&crossterm::event::Event::Key(
-                    crossterm::event::KeyEvent::new(
-                        crossterm::event::KeyCode::Char(c),
-                        crossterm::event::KeyModifiers::empty(),
-                    )
-                ));
+            0 => {
+                // Password
+                self.wifi_password_input
+                    .handle_event(&crossterm::event::Event::Key(
+                        crossterm::event::KeyEvent::new(
+                            crossterm::event::KeyCode::Char(c),
+                            crossterm::event::KeyModifiers::empty(),
+                        ),
+                    ));
             }
-            1 => { // IP
-                self.wifi_ip_input.handle_event(&crossterm::event::Event::Key(
-                    crossterm::event::KeyEvent::new(
-                        crossterm::event::KeyCode::Char(c),
-                        crossterm::event::KeyModifiers::empty(),
-                    )
-                ));
+            1 => {
+                // IP
+                self.wifi_ip_input
+                    .handle_event(&crossterm::event::Event::Key(
+                        crossterm::event::KeyEvent::new(
+                            crossterm::event::KeyCode::Char(c),
+                            crossterm::event::KeyModifiers::empty(),
+                        ),
+                    ));
             }
-            2 => { // Gateway
-                self.wifi_gateway_input.handle_event(&crossterm::event::Event::Key(
-                    crossterm::event::KeyEvent::new(
-                        crossterm::event::KeyCode::Char(c),
-                        crossterm::event::KeyModifiers::empty(),
-                    )
-                ));
+            2 => {
+                // Gateway
+                self.wifi_gateway_input
+                    .handle_event(&crossterm::event::Event::Key(
+                        crossterm::event::KeyEvent::new(
+                            crossterm::event::KeyCode::Char(c),
+                            crossterm::event::KeyModifiers::empty(),
+                        ),
+                    ));
             }
-            3 => { // DNS
-                self.wifi_dns_input.handle_event(&crossterm::event::Event::Key(
-                    crossterm::event::KeyEvent::new(
-                        crossterm::event::KeyCode::Char(c),
-                        crossterm::event::KeyModifiers::empty(),
-                    )
-                ));
+            3 => {
+                // DNS
+                self.wifi_dns_input
+                    .handle_event(&crossterm::event::Event::Key(
+                        crossterm::event::KeyEvent::new(
+                            crossterm::event::KeyCode::Char(c),
+                            crossterm::event::KeyModifiers::empty(),
+                        ),
+                    ));
             }
             _ => {}
         }
     }
 
     pub fn wifi_connect_delete_char(&mut self) {
-        let backspace_event = crossterm::event::Event::Key(
-            crossterm::event::KeyEvent::new(
-                crossterm::event::KeyCode::Backspace,
-                crossterm::event::KeyModifiers::empty(),
-            )
-        );
-        
+        let backspace_event = crossterm::event::Event::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Backspace,
+            crossterm::event::KeyModifiers::empty(),
+        ));
+
         match self.wifi_active_input {
-            0 => { self.wifi_password_input.handle_event(&backspace_event); }
-            1 => { self.wifi_ip_input.handle_event(&backspace_event); }
-            2 => { self.wifi_gateway_input.handle_event(&backspace_event); }
-            3 => { self.wifi_dns_input.handle_event(&backspace_event); }
+            0 => {
+                self.wifi_password_input.handle_event(&backspace_event);
+            }
+            1 => {
+                self.wifi_ip_input.handle_event(&backspace_event);
+            }
+            2 => {
+                self.wifi_gateway_input.handle_event(&backspace_event);
+            }
+            3 => {
+                self.wifi_dns_input.handle_event(&backspace_event);
+            }
             _ => {}
         }
     }
 
     pub async fn connect_to_selected_wifi(&mut self) -> Result<()> {
-        if let (Some(interface), Some(network)) = (self.get_selected_interface(), &self.selected_wifi_network) {
+        if let (Some(interface), Some(network)) =
+            (self.get_selected_interface(), &self.selected_wifi_network)
+        {
             let credentials = WifiCredentials {
                 ssid: network.ssid.clone(),
                 password: if self.wifi_password_input.value().is_empty() {
@@ -762,25 +846,36 @@ impl App {
 
             let dns_servers = if !self.wifi_use_dhcp && !self.wifi_dns_input.value().is_empty() {
                 Some(
-                    self.wifi_dns_input.value()
+                    self.wifi_dns_input
+                        .value()
                         .split(',')
                         .map(|s| s.trim().to_string())
                         .filter(|s| !s.is_empty())
-                        .collect()
+                        .collect(),
                 )
             } else {
                 None
             };
 
             // Try to connect to WiFi
-            self.network_manager.connect_to_wifi(
-                &interface.name,
-                &credentials,
-                self.wifi_use_dhcp,
-                if self.wifi_use_dhcp { None } else { Some(self.wifi_ip_input.value().to_string()) },
-                if self.wifi_use_dhcp { None } else { Some(self.wifi_gateway_input.value().to_string()) },
-                dns_servers.clone(),
-            ).await?;
+            self.network_manager
+                .connect_to_wifi(
+                    &interface.name,
+                    &credentials,
+                    self.wifi_use_dhcp,
+                    if self.wifi_use_dhcp {
+                        None
+                    } else {
+                        Some(self.wifi_ip_input.value().to_string())
+                    },
+                    if self.wifi_use_dhcp {
+                        None
+                    } else {
+                        Some(self.wifi_gateway_input.value().to_string())
+                    },
+                    dns_servers.clone(),
+                )
+                .await?;
 
             // Save WiFi profile to history
             let wifi_profile = WifiProfile {
@@ -789,17 +884,25 @@ impl App {
                 password: credentials.password.clone(),
                 interface: interface.name.clone(),
                 dhcp: self.wifi_use_dhcp,
-                ip: if self.wifi_use_dhcp { None } else { Some(self.wifi_ip_input.value().to_string()) },
-                gateway: if self.wifi_use_dhcp { None } else { Some(self.wifi_gateway_input.value().to_string()) },
+                ip: if self.wifi_use_dhcp {
+                    None
+                } else {
+                    Some(self.wifi_ip_input.value().to_string())
+                },
+                gateway: if self.wifi_use_dhcp {
+                    None
+                } else {
+                    Some(self.wifi_gateway_input.value().to_string())
+                },
                 dns: dns_servers,
                 last_connected: Some(SystemTime::now()),
                 auto_connect: false, // User can enable this later
-                priority: 0, // Default priority
-                enterprise: None, // Regular WiFi doesn't use Enterprise credentials
+                priority: 0,         // Default priority
+                enterprise: None,    // Regular WiFi doesn't use Enterprise credentials
             };
 
             self.config.add_wifi_profile(wifi_profile);
-            
+
             // Save config to disk
             if let Err(e) = self.config.save() {
                 eprintln!("Warning: Failed to save WiFi profile: {}", e);
@@ -807,7 +910,7 @@ impl App {
 
             self.status_message = Some((
                 format!("Connecting to WiFi network: {}", network.ssid),
-                Instant::now()
+                Instant::now(),
             ));
 
             self.close_wifi_connect_dialog();
@@ -819,13 +922,20 @@ impl App {
 
     pub async fn disconnect_from_wifi(&mut self) -> Result<()> {
         if let Some(interface) = self.get_selected_interface() {
-            if interface.wifi_info.is_some() && interface.wifi_info.as_ref().unwrap().current_network.is_some() {
-                self.network_manager.disconnect_wifi(&interface.name).await?;
-                
-                self.status_message = Some((
-                    format!("Disconnected from WiFi network"),
-                    Instant::now()
-                ));
+            if interface.wifi_info.is_some()
+                && interface
+                    .wifi_info
+                    .as_ref()
+                    .unwrap()
+                    .current_network
+                    .is_some()
+            {
+                self.network_manager
+                    .disconnect_wifi(&interface.name)
+                    .await?;
+
+                self.status_message =
+                    Some((format!("Disconnected from WiFi network"), Instant::now()));
 
                 self.refresh_interfaces().await?;
             }
@@ -841,12 +951,12 @@ impl App {
             self.enterprise_active_input = 2; // Start with username field
         }
     }
-    
+
     #[allow(dead_code)]
     pub fn open_wifi_enterprise_dialog_direct(&mut self) {
         self.show_wifi_enterprise_dialog = true;
         self.enterprise_active_input = 2; // Start with username field
-        
+
         // Reset fields
         self.enterprise_username_input = Input::default();
         self.enterprise_password_input = Input::default();
@@ -866,9 +976,9 @@ impl App {
         // Cycle through text inputs only: username(2), password(3), identity(4), ca_cert(5), client_cert(6), private_key(7), key_password(8)
         let max_field = match self.enterprise_auth_method {
             crate::network::EnterpriseAuthMethod::TLS => 8, // All fields available
-            _ => 5, // Only up to ca_cert
+            _ => 5,                                         // Only up to ca_cert
         };
-        
+
         self.enterprise_active_input += 1;
         if self.enterprise_active_input > max_field {
             self.enterprise_active_input = 2; // Reset to username
@@ -897,49 +1007,75 @@ impl App {
     }
 
     pub fn enterprise_input_char(&mut self, c: char) {
-        let event = crossterm::event::Event::Key(
-            crossterm::event::KeyEvent::new(
-                crossterm::event::KeyCode::Char(c),
-                crossterm::event::KeyModifiers::empty(),
-            )
-        );
-        
+        let event = crossterm::event::Event::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char(c),
+            crossterm::event::KeyModifiers::empty(),
+        ));
+
         match self.enterprise_active_input {
-            0 | 1 => {}, // Auth method and phase2 are handled by F1/F2 keys
-            2 => { self.enterprise_username_input.handle_event(&event); }
-            3 => { self.enterprise_password_input.handle_event(&event); }
-            4 => { self.enterprise_identity_input.handle_event(&event); }
-            5 => { self.enterprise_ca_cert_input.handle_event(&event); }
-            6 => { self.enterprise_client_cert_input.handle_event(&event); }
-            7 => { self.enterprise_private_key_input.handle_event(&event); }
-            8 => { self.enterprise_key_password_input.handle_event(&event); }
+            0 | 1 => {} // Auth method and phase2 are handled by F1/F2 keys
+            2 => {
+                self.enterprise_username_input.handle_event(&event);
+            }
+            3 => {
+                self.enterprise_password_input.handle_event(&event);
+            }
+            4 => {
+                self.enterprise_identity_input.handle_event(&event);
+            }
+            5 => {
+                self.enterprise_ca_cert_input.handle_event(&event);
+            }
+            6 => {
+                self.enterprise_client_cert_input.handle_event(&event);
+            }
+            7 => {
+                self.enterprise_private_key_input.handle_event(&event);
+            }
+            8 => {
+                self.enterprise_key_password_input.handle_event(&event);
+            }
             _ => {}
         }
     }
 
     pub fn enterprise_delete_char(&mut self) {
-        let event = crossterm::event::Event::Key(
-            crossterm::event::KeyEvent::new(
-                crossterm::event::KeyCode::Backspace,
-                crossterm::event::KeyModifiers::empty(),
-            )
-        );
-        
+        let event = crossterm::event::Event::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Backspace,
+            crossterm::event::KeyModifiers::empty(),
+        ));
+
         match self.enterprise_active_input {
-            0 | 1 => {}, // Auth method and phase2 are handled by F1/F2 keys
-            2 => { self.enterprise_username_input.handle_event(&event); }
-            3 => { self.enterprise_password_input.handle_event(&event); }
-            4 => { self.enterprise_identity_input.handle_event(&event); }
-            5 => { self.enterprise_ca_cert_input.handle_event(&event); }
-            6 => { self.enterprise_client_cert_input.handle_event(&event); }
-            7 => { self.enterprise_private_key_input.handle_event(&event); }
-            8 => { self.enterprise_key_password_input.handle_event(&event); }
+            0 | 1 => {} // Auth method and phase2 are handled by F1/F2 keys
+            2 => {
+                self.enterprise_username_input.handle_event(&event);
+            }
+            3 => {
+                self.enterprise_password_input.handle_event(&event);
+            }
+            4 => {
+                self.enterprise_identity_input.handle_event(&event);
+            }
+            5 => {
+                self.enterprise_ca_cert_input.handle_event(&event);
+            }
+            6 => {
+                self.enterprise_client_cert_input.handle_event(&event);
+            }
+            7 => {
+                self.enterprise_private_key_input.handle_event(&event);
+            }
+            8 => {
+                self.enterprise_key_password_input.handle_event(&event);
+            }
             _ => {}
         }
     }
 
     pub async fn connect_to_enterprise_wifi(&mut self) -> Result<()> {
-        if let (Some(interface), Some(network)) = (self.get_selected_interface(), &self.selected_wifi_network) {
+        if let (Some(interface), Some(network)) =
+            (self.get_selected_interface(), &self.selected_wifi_network)
+        {
             let enterprise_creds = EnterpriseCredentials {
                 auth_method: self.enterprise_auth_method.clone(),
                 username: self.enterprise_username_input.value().to_string(),
@@ -971,7 +1107,7 @@ impl App {
                 },
                 phase2_auth: self.enterprise_phase2_auth.clone(),
             };
-            
+
             let credentials = WifiCredentials {
                 ssid: network.ssid.clone(),
                 password: None, // Not used for Enterprise
@@ -982,25 +1118,36 @@ impl App {
 
             let dns_servers = if !self.wifi_use_dhcp && !self.wifi_dns_input.value().is_empty() {
                 Some(
-                    self.wifi_dns_input.value()
+                    self.wifi_dns_input
+                        .value()
                         .split(',')
                         .map(|s| s.trim().to_string())
                         .filter(|s| !s.is_empty())
-                        .collect()
+                        .collect(),
                 )
             } else {
                 None
             };
 
             // Connect to Enterprise WiFi
-            self.network_manager.connect_to_wifi(
-                &interface.name,
-                &credentials,
-                self.wifi_use_dhcp,
-                if self.wifi_use_dhcp { None } else { Some(self.wifi_ip_input.value().to_string()) },
-                if self.wifi_use_dhcp { None } else { Some(self.wifi_gateway_input.value().to_string()) },
-                dns_servers.clone(),
-            ).await?;
+            self.network_manager
+                .connect_to_wifi(
+                    &interface.name,
+                    &credentials,
+                    self.wifi_use_dhcp,
+                    if self.wifi_use_dhcp {
+                        None
+                    } else {
+                        Some(self.wifi_ip_input.value().to_string())
+                    },
+                    if self.wifi_use_dhcp {
+                        None
+                    } else {
+                        Some(self.wifi_gateway_input.value().to_string())
+                    },
+                    dns_servers.clone(),
+                )
+                .await?;
 
             // Save Enterprise WiFi profile to history
             let wifi_profile = crate::config::WifiProfile {
@@ -1009,17 +1156,25 @@ impl App {
                 password: None, // Not used for Enterprise
                 interface: interface.name.clone(),
                 dhcp: self.wifi_use_dhcp,
-                ip: if self.wifi_use_dhcp { None } else { Some(self.wifi_ip_input.value().to_string()) },
-                gateway: if self.wifi_use_dhcp { None } else { Some(self.wifi_gateway_input.value().to_string()) },
+                ip: if self.wifi_use_dhcp {
+                    None
+                } else {
+                    Some(self.wifi_ip_input.value().to_string())
+                },
+                gateway: if self.wifi_use_dhcp {
+                    None
+                } else {
+                    Some(self.wifi_gateway_input.value().to_string())
+                },
                 dns: dns_servers,
                 last_connected: Some(std::time::SystemTime::now()),
                 auto_connect: false, // User can enable this later
-                priority: 0, // Default priority
+                priority: 0,         // Default priority
                 enterprise: Some(enterprise_creds.clone()),
             };
 
             self.config.add_wifi_profile(wifi_profile);
-            
+
             // Save config to disk
             if let Err(e) = self.config.save() {
                 eprintln!("Warning: Failed to save Enterprise WiFi profile: {}", e);
@@ -1027,7 +1182,7 @@ impl App {
 
             self.status_message = Some((
                 format!("Connecting to Enterprise WiFi: {}", network.ssid),
-                Instant::now()
+                Instant::now(),
             ));
 
             self.close_wifi_enterprise_dialog();
@@ -1066,33 +1221,37 @@ impl App {
     }
 
     pub fn hotspot_input_char(&mut self, c: char) {
-        let event = crossterm::event::Event::Key(
-            crossterm::event::KeyEvent::new(
-                crossterm::event::KeyCode::Char(c),
-                crossterm::event::KeyModifiers::empty(),
-            )
-        );
-        
+        let event = crossterm::event::Event::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Char(c),
+            crossterm::event::KeyModifiers::empty(),
+        ));
+
         match self.hotspot_active_input {
-            0 => { self.hotspot_ssid_input.handle_event(&event); }
-            1 => { self.hotspot_password_input.handle_event(&event); }
-            2 => {}, // Channel is handled by hotspot_cycle_channel
+            0 => {
+                self.hotspot_ssid_input.handle_event(&event);
+            }
+            1 => {
+                self.hotspot_password_input.handle_event(&event);
+            }
+            2 => {} // Channel is handled by hotspot_cycle_channel
             _ => {}
         }
     }
 
     pub fn hotspot_delete_char(&mut self) {
-        let event = crossterm::event::Event::Key(
-            crossterm::event::KeyEvent::new(
-                crossterm::event::KeyCode::Backspace,
-                crossterm::event::KeyModifiers::empty(),
-            )
-        );
-        
+        let event = crossterm::event::Event::Key(crossterm::event::KeyEvent::new(
+            crossterm::event::KeyCode::Backspace,
+            crossterm::event::KeyModifiers::empty(),
+        ));
+
         match self.hotspot_active_input {
-            0 => { self.hotspot_ssid_input.handle_event(&event); }
-            1 => { self.hotspot_password_input.handle_event(&event); }
-            2 => {}, // Channel is handled by hotspot_cycle_channel
+            0 => {
+                self.hotspot_ssid_input.handle_event(&event);
+            }
+            1 => {
+                self.hotspot_password_input.handle_event(&event);
+            }
+            2 => {} // Channel is handled by hotspot_cycle_channel
             _ => {}
         }
     }
@@ -1103,7 +1262,7 @@ impl App {
             if interface.wifi_info.is_none() {
                 self.status_message = Some((
                     "Selected interface is not a WiFi interface".to_string(),
-                    Instant::now()
+                    Instant::now(),
                 ));
                 return Ok(());
             }
@@ -1121,14 +1280,12 @@ impl App {
                 Ok(()) => {
                     self.status_message = Some((
                         format!("Hotspot '{}' created successfully", hotspot_config.ssid),
-                        Instant::now()
+                        Instant::now(),
                     ));
                 }
                 Err(e) => {
-                    self.status_message = Some((
-                        format!("Failed to create hotspot: {}", e),
-                        Instant::now()
-                    ));
+                    self.status_message =
+                        Some((format!("Failed to create hotspot: {}", e), Instant::now()));
                 }
             }
 
@@ -1137,7 +1294,7 @@ impl App {
         }
         Ok(())
     }
-    
+
     // WiFi Diagnostics methods
     pub async fn open_wifi_diagnostics_dialog(&mut self) {
         // Fetch diagnostics data when opening the dialog
@@ -1153,12 +1310,15 @@ impl App {
     pub async fn get_detailed_wifi_info(&self) -> Result<Option<DetailedWifiInfo>> {
         if let Some(interface) = self.get_selected_interface() {
             if interface.wifi_info.is_some() {
-                return self.network_manager.get_detailed_wifi_info(&interface.name).await;
+                return self
+                    .network_manager
+                    .get_detailed_wifi_info(&interface.name)
+                    .await;
             }
         }
         Ok(None)
     }
-    
+
     pub async fn refresh_wifi_diagnostics(&mut self) {
         if self.show_wifi_diagnostics_dialog {
             self.wifi_diagnostics_data = self.get_detailed_wifi_info().await.unwrap_or(None);
