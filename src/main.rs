@@ -9,7 +9,6 @@ mod iwd;
 mod network;
 mod systemd;
 mod ui;
-mod utils;
 
 use anyhow::Result;
 use clap::{Arg, Command};
